@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/app_button.dart';
+import '../../../../core/presentation/widgets/app_button.dart';
 
 // simple demo screen
 class ButtonsShowcaseScreen extends StatelessWidget {

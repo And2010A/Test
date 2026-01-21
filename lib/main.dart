@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/buttons_showcase_screen.dart';
+import 'features/ui_showcase/presentation/pages/buttons_showcase_screen.dart';
 
 void main() {
   runApp(const MyApp());

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../theme/custom_themes/elevated_button_theme.dart';
 
 // button style type
 enum ButtonVariant {
   primary,
   secondary,
   ghost,
-  google, // google style
+  google,
 }
 
 // button size type
@@ -22,21 +23,13 @@ enum IconPosition {
 }
 
 class AppButton extends StatelessWidget {
-  // text label
   final String? text;
-  // optional icon
   final Widget? icon;
-  // tap callback
   final VoidCallback? onPressed;
-  // style variant
   final ButtonVariant variant;
-  // size preset
   final ButtonSize size;
-  // icon side
   final IconPosition iconPosition;
-  // full width or wrap
   final bool fullWidth;
-  // disabled state
   final bool isDisabled;
 
   const AppButton({
@@ -53,19 +46,15 @@ class AppButton extends StatelessWidget {
             'Either text or icon must be provided'),
         super(key: key);
 
-  // height per size
   double get _height {
-    switch (size) {
-      case ButtonSize.large:
-        return 44;
-      case ButtonSize.medium:
-        return 40;
-      case ButtonSize.small:
-        return 32;
-    }
+    const map = {
+      ButtonSize.large: AppButtonSizes.large,
+      ButtonSize.medium: AppButtonSizes.medium,
+      ButtonSize.small: AppButtonSizes.small,
+    };
+    return map[size]!;
   }
 
-  // base text style (Google spec: 16, w500, 24 height)
   TextStyle _textStyle(Color color) {
     return TextStyle(
       color: color,
@@ -75,36 +64,15 @@ class AppButton extends StatelessWidget {
     );
   }
 
-  // primary color #F84416
-  Color _primaryColor(BuildContext context) {
-    return const Color(0xFFF84416);
-  }
+  Color get _primaryColor => const Color(0xFFF84416);
+  Color get _googleBorder => const Color(0xFFE5E5E5);
+  Color get _ghostColor => const Color(0xFF575757);
 
-  Color _disabledColor(BuildContext context) {
-    return Colors.grey.shade400;
-  }
-
-  Color _borderColor(BuildContext context) {
-    if (isDisabled) {
-      return Colors.grey.shade300;
-    }
-    switch (variant) {
-      case ButtonVariant.primary:
-        return Colors.transparent;
-      case ButtonVariant.secondary:
-        return Colors.grey.shade500;
-      case ButtonVariant.ghost:
-        return Colors.transparent;
-      case ButtonVariant.google:
-        return const Color(0xFFE5E5E5); // google border
-    }
-  }
-
-  Color _backgroundColor(BuildContext context) {
+  Color get _backgroundColor {
     if (isDisabled) {
       switch (variant) {
         case ButtonVariant.primary:
-          return _disabledColor(context);
+          return Colors.grey.shade400;
         case ButtonVariant.secondary:
         case ButtonVariant.ghost:
         case ButtonVariant.google:
@@ -113,17 +81,17 @@ class AppButton extends StatelessWidget {
     }
     switch (variant) {
       case ButtonVariant.primary:
-        return _primaryColor(context);
+        return _primaryColor;
       case ButtonVariant.secondary:
         return Colors.transparent;
       case ButtonVariant.ghost:
-        return Colors.transparent; // ghost bg
+        return Colors.transparent;
       case ButtonVariant.google:
-        return Colors.white; // card style
+        return Colors.white;
     }
   }
 
-  Color _foregroundColor(BuildContext context) {
+  Color get _foregroundColor {
     if (isDisabled) {
       return Colors.grey.shade600;
     }
@@ -133,30 +101,45 @@ class AppButton extends StatelessWidget {
       case ButtonVariant.secondary:
         return Colors.black87;
       case ButtonVariant.ghost:
-        return const Color(0xFF575757); // back arrow color
+        return _ghostColor;
       case ButtonVariant.google:
-        return Colors.black87; // google text
+        return Colors.black87;
     }
   }
 
+  BorderSide get _side {
+    if (isDisabled) {
+      return BorderSide(color: Colors.grey.shade300, width: 0);
+    }
+    switch (variant) {
+      case ButtonVariant.primary:
+        return const BorderSide(color: Colors.transparent, width: 0);
+      case ButtonVariant.secondary:
+        return BorderSide(color: Colors.grey.shade500, width: 1);
+      case ButtonVariant.ghost:
+        return const BorderSide(color: Colors.transparent, width: 0);
+      case ButtonVariant.google:
+        return BorderSide(color: _googleBorder, width: 1);
+    }
+  }
+
+  double get _iconSize => 24;
+
   @override
   Widget build(BuildContext context) {
-    // radius 12px
     final radius = BorderRadius.circular(12);
-    final bgColor = _backgroundColor(context);
-    final fgColor = _foregroundColor(context);
-    final borderColor = _borderColor(context);
+    final bgColor = _backgroundColor;
+    final fgColor = _foregroundColor;
+    final borderSide = _side;
     final hasText = text != null && text!.isNotEmpty;
     final hasIcon = icon != null;
 
     Widget child;
 
-    // text + icon
     if (hasText && hasIcon) {
-      // 24x24 icon box
       final Widget sizedIcon = SizedBox(
-        width: 24,
-        height: 24,
+        width: _iconSize,
+        height: _iconSize,
         child: Center(
           child: IconTheme(
             data: IconThemeData(color: fgColor),
@@ -168,11 +151,11 @@ class AppButton extends StatelessWidget {
       final content = <Widget>[
         if (iconPosition == IconPosition.left) ...[
           sizedIcon,
-          const SizedBox(width: 4), // gap 4px
+          const SizedBox(width: 4),
           Text(text!, style: _textStyle(fgColor)),
         ] else ...[
           Text(text!, style: _textStyle(fgColor)),
-          const SizedBox(width: 4), // gap 4px
+          const SizedBox(width: 4),
           sizedIcon,
         ],
       ];
@@ -180,11 +163,10 @@ class AppButton extends StatelessWidget {
       child = Row(
         mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center, // vertical center
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: content,
       );
     } else if (hasText) {
-      // text only
       child = Center(
         child: Text(
           text!,
@@ -192,10 +174,9 @@ class AppButton extends StatelessWidget {
         ),
       );
     } else {
-      // icon only (24x24)
       final Widget sizedIcon = SizedBox(
-        width: 24,
-        height: 24,
+        width: _iconSize,
+        height: _iconSize,
         child: Center(
           child: IconTheme(
             data: IconThemeData(color: fgColor),
@@ -206,36 +187,29 @@ class AppButton extends StatelessWidget {
       child = Center(child: sizedIcon);
     }
 
-    // padding + min height
-    final buttonContent = ConstrainedBox(
+    final paddedContent = ConstrainedBox(
       constraints: BoxConstraints(
-        minHeight: _height, // keeps 44px / 40px / 32px area
+        minHeight: _height,
       ),
       child: Padding(
-        // 14h / 10v
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: child,
       ),
     );
 
-    // material + ripple
     final materialChild = Material(
       color: bgColor,
       shape: RoundedRectangleBorder(
         borderRadius: radius,
-        side: BorderSide(
-          color: borderColor,
-          width: variant == ButtonVariant.google ? 1 : 0,
-        ),
+        side: borderSide,
       ),
       child: InkWell(
         borderRadius: radius,
         onTap: isDisabled ? null : onPressed,
-        child: buttonContent,
+        child: paddedContent,
       ),
     );
 
-    // width behavior
     if (fullWidth) {
       return SizedBox(
         width: double.infinity,
