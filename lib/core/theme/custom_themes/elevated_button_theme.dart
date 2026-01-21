@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../app_colors.dart';
+import 'text_theme.dart';
+
 /// Button size constants
 class AppButtonSizes {
   AppButtonSizes._();
@@ -17,20 +20,16 @@ class TElevatedButtonTheme {
   static final lightElevatedButtonTheme = ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       elevation: 0,
-      foregroundColor: Colors.white,
-      backgroundColor: const Color(0xFFF84416), // App primary orange
-      disabledForegroundColor: Colors.grey,
-      disabledBackgroundColor: Colors.grey,
-      side: const BorderSide(
-        color: Color(0xFFF84416), // same orange
+      foregroundColor: AppColors.white,
+      backgroundColor: AppColors.primary.shade500,
+      disabledForegroundColor: AppColors.disabledForeground,
+      disabledBackgroundColor: AppColors.disabledBackground,
+      side: BorderSide(
+        color: AppColors.primary.shade500,
       ),
       padding: const EdgeInsets.symmetric(vertical: 18),
       minimumSize: Size.fromHeight(AppButtonSizes.medium),
-      textStyle: const TextStyle(
-        fontSize: 16,
-        color: Colors.white,
-        fontWeight: FontWeight.w600,
-      ),
+      textStyle: TTextTheme.lightTextTheme.labelLarge,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),

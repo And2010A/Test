@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../theme/app_colors.dart';
 import '../../theme/custom_themes/elevated_button_theme.dart';
 
 // button style type
@@ -64,15 +66,15 @@ class AppButton extends StatelessWidget {
     );
   }
 
-  Color get _primaryColor => const Color(0xFFF84416);
-  Color get _googleBorder => const Color(0xFFE5E5E5);
-  Color get _ghostColor => const Color(0xFF575757);
+  Color get _primaryColor => AppColors.primary.shade500;
+  Color get _googleBorder => AppColors.googleBorder;
+  Color get _ghostColor => AppColors.ghostForeground;
 
   Color get _backgroundColor {
     if (isDisabled) {
       switch (variant) {
         case ButtonVariant.primary:
-          return Colors.grey.shade400;
+          return AppColors.disabledBackground;
         case ButtonVariant.secondary:
         case ButtonVariant.ghost:
         case ButtonVariant.google:
@@ -87,17 +89,17 @@ class AppButton extends StatelessWidget {
       case ButtonVariant.ghost:
         return Colors.transparent;
       case ButtonVariant.google:
-        return Colors.white;
+        return AppColors.white;
     }
   }
 
   Color get _foregroundColor {
     if (isDisabled) {
-      return Colors.grey.shade600;
+      return AppColors.disabledForeground;
     }
     switch (variant) {
       case ButtonVariant.primary:
-        return Colors.white;
+        return AppColors.white;
       case ButtonVariant.secondary:
         return Colors.black87;
       case ButtonVariant.ghost:
@@ -109,13 +111,13 @@ class AppButton extends StatelessWidget {
 
   BorderSide get _side {
     if (isDisabled) {
-      return BorderSide(color: Colors.grey.shade300, width: 0);
+      return BorderSide(color: AppColors.disabledBorder, width: 0);
     }
     switch (variant) {
       case ButtonVariant.primary:
         return const BorderSide(color: Colors.transparent, width: 0);
       case ButtonVariant.secondary:
-        return BorderSide(color: Colors.grey.shade500, width: 1);
+        return BorderSide(color: AppColors.grey.shade500, width: 1);
       case ButtonVariant.ghost:
         return const BorderSide(color: Colors.transparent, width: 0);
       case ButtonVariant.google:

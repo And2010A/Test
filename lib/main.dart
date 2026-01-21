@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'core/theme/app_colors.dart';
 import 'features/ui_showcase/presentation/pages/buttons_showcase_screen.dart';
 
 void main() {
@@ -14,7 +16,7 @@ class MyApp extends StatelessWidget {
       title: 'AppButton Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.deepOrange,
+        primarySwatch: AppColors.primary,
         useMaterial3: false,
       ),
       home: const ButtonsShowcaseScreen(),
