@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../constants/app_typography.dart';
+
 class TTextTheme {
   TTextTheme._();
 
@@ -7,16 +10,24 @@ class TTextTheme {
     fontWeight: FontWeight.bold,
     color: Colors.black,
   );
+
   static const TextStyle _baseLabel = TextStyle(
-    fontSize: 16.0,
+    fontSize: AppFontSizes.h5,
     fontWeight: FontWeight.w600,
-    height: 24 / 16,
+    height: AppLineHeights.h5 / AppFontSizes.h5,
   );
 
   // Light only
   static final TextTheme lightTextTheme = TextTheme(
-    headlineLarge: _baseHeadline.copyWith(fontSize: 32.0),
-    headlineMedium: _baseHeadline.copyWith(fontSize: 24.0),
+    // Headings
+    headlineLarge: _baseHeadline.copyWith(
+      fontSize: AppFontSizes.h2,
+      height: AppLineHeights.h2 / AppFontSizes.h2,
+    ),
+    headlineMedium: _baseHeadline.copyWith(
+      fontSize: AppFontSizes.h3,
+      height: AppLineHeights.h3 / AppFontSizes.h3,
+    ),
 
     // Buttons
     labelLarge: _baseLabel,
