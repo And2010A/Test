@@ -29,7 +29,7 @@ class TElevatedButtonTheme {
       ),
       padding: const EdgeInsets.symmetric(vertical: 18),
       minimumSize: Size.fromHeight(AppButtonSizes.medium),
-      textStyle: TTextTheme.lightTextTheme.labelLarge,
+      textStyle: TTextTheme.lightTextTheme.labelLarge?.copyWith(color: null),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),

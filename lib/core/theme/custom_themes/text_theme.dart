@@ -1,63 +1,63 @@
 import 'package:flutter/material.dart';
 
 import '../../constants/app_typography.dart';
-
-/// App text theme that maps Material text styles to our design system tokens.
+import '../app_colors.dart';
 class TTextTheme {
   TTextTheme._();
-
-  // Base styles
-  static const TextStyle _base = TextStyle(
-    color: Colors.black,
-    fontWeight: FontWeight.w400,
-  );
-
-  static const TextStyle _baseTitle = TextStyle(
-    color: Colors.black,
-    fontWeight: FontWeight.w600,
-  );
-
-  static const TextStyle _baseHeadline = TextStyle(
-    color: Colors.black,
-    fontWeight: FontWeight.bold,
-  );
-
-  // Light only
-  static final TextTheme lightTextTheme = TextTheme(
+  static const TextTheme _baseTextTheme = TextTheme(
     // Body
-    bodyMedium: _base.copyWith(
+    bodyMedium: TextStyle(
       fontSize: AppTypography.fontSizeSm,
       height: AppTypography.heightSm,
+      fontWeight: AppTypography.w400,
     ),
-    bodyLarge: _base.copyWith(
+    bodyLarge: TextStyle(
       fontSize: AppTypography.fontSizeMd,
       height: AppTypography.heightMd,
+      fontWeight: AppTypography.w400,
     ),
 
     // Titles
-    titleMedium: _baseTitle.copyWith(
+    titleMedium: TextStyle(
       fontSize: AppTypography.fontSizeMd,
       height: AppTypography.heightMd,
+      fontWeight: AppTypography.w600,
     ),
-    titleLarge: _baseTitle.copyWith(
+    titleLarge: TextStyle(
       fontSize: AppTypography.fontSizeXl,
       height: AppTypography.heightXl,
+      fontWeight: AppTypography.w600,
     ),
 
     // Headlines
-    headlineSmall: _baseHeadline.copyWith(
+    headlineSmall: TextStyle(
       fontSize: AppTypography.fontSize2xl,
       height: AppTypography.height2xl,
+      fontWeight: AppTypography.w700,
     ),
 
     // Labels (buttons, chips, etc.)
-    labelLarge: _baseTitle.copyWith(
+    labelLarge: TextStyle(
       fontSize: AppTypography.fontSizeMd,
       height: AppTypography.heightMd,
+      fontWeight: AppTypography.w600,
     ),
-    labelMedium: _baseTitle.copyWith(
+    labelMedium: TextStyle(
       fontSize: AppTypography.fontSizeSm,
       height: AppTypography.heightSm,
+      fontWeight: AppTypography.w600,
     ),
+  );
+
+  /// Light theme colors.
+  static final TextTheme lightTextTheme = _baseTextTheme.apply(
+    bodyColor: AppColors.grey[900]!,
+    displayColor: AppColors.grey[900]!,
+  );
+
+  /// Dark theme placeholder
+  static TextTheme darkTextTheme = _baseTextTheme.apply(
+    bodyColor: Colors.white,
+    displayColor: Colors.white,
   );
 }

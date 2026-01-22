@@ -1,5 +1,12 @@
+import 'package:flutter/widgets.dart';
 class AppTypography {
   AppTypography._();
+
+  // Font weights
+  static const FontWeight w400 = FontWeight.w400; // Regular
+  static const FontWeight w500 = FontWeight.w500; // Medium
+  static const FontWeight w600 = FontWeight.w600; // SemiBold
+  static const FontWeight w700 = FontWeight.w700; // Bold
 
   // Smallest
   static const double fontSizeSm = 14.0;
