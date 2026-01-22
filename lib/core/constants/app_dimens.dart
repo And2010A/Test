@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+
 class AppDimens {
   AppDimens._();
 
@@ -13,10 +14,13 @@ class AppDimens {
   // Common paddings
   static const double screenPadding = md;
 
-  // Border radius
+  // Border radius (Figma scale)
+  // 6, 8, 10, 12, 16
+  static const double radiusXs = 6.0;
   static const double radiusSm = 8.0;
-  static const double radiusMd = 12.0;
-  static const double radiusLg = 16.0;
+  static const double radiusMd = 10.0;
+  static const double radiusLg = 12.0;
+  static const double radiusXl = 16.0;
 
   // Icon sizes
   static const double iconSm = 16.0;
@@ -40,6 +44,9 @@ class AppDimens {
   static const EdgeInsets screenInsets = EdgeInsets.all(screenPadding);
 
   // Prebuilt BorderRadius
+  static const BorderRadius borderRadiusXs = BorderRadius.all(
+    Radius.circular(radiusXs),
+  );
   static const BorderRadius borderRadiusSm = BorderRadius.all(
     Radius.circular(radiusSm),
   );
@@ -48,5 +55,8 @@ class AppDimens {
   );
   static const BorderRadius borderRadiusLg = BorderRadius.all(
     Radius.circular(radiusLg),
+  );
+  static const BorderRadius borderRadiusXl = BorderRadius.all(
+    Radius.circular(radiusXl),
   );
 }
