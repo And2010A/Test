@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 
 import '../../constants/app_typography.dart';
-import '../app_colors.dart';
 class TTextTheme {
   TTextTheme._();
-  static const TextTheme _baseTextTheme = TextTheme(
+
+  // Colors (from Figma)
+  static const Color _primaryText = Color(0xFF1A1A1A);
+  static const Color _secondaryText = Color(0xFF575757);
+  static const Color _brandColor = Color(0xFFF84416);
+
+  /// Expose the brand color for any custom text use-cases (links, highlights, etc.).
+  static Color get brandColor => _brandColor;
+  static final TextTheme _baseTextTheme = const TextTheme(
     // Body
+    bodySmall: TextStyle(
+      fontSize: AppTypography.fontSizeSm,
+      height: AppTypography.heightSm,
+      fontWeight: AppTypography.w400,
+    ),
     bodyMedium: TextStyle(
       fontSize: AppTypography.fontSizeSm,
       height: AppTypography.heightSm,
@@ -18,6 +30,11 @@ class TTextTheme {
     ),
 
     // Titles
+    titleSmall: TextStyle(
+      fontSize: AppTypography.fontSizeLg,
+      height: AppTypography.heightLg,
+      fontWeight: AppTypography.w600,
+    ),
     titleMedium: TextStyle(
       fontSize: AppTypography.fontSizeMd,
       height: AppTypography.heightMd,
@@ -37,27 +54,46 @@ class TTextTheme {
     ),
 
     // Labels (buttons, chips, etc.)
-    labelLarge: TextStyle(
-      fontSize: AppTypography.fontSizeMd,
-      height: AppTypography.heightMd,
-      fontWeight: AppTypography.w600,
+    labelSmall: TextStyle(
+      fontSize: AppTypography.fontSizeSm,
+      height: AppTypography.heightSm,
+      fontWeight: AppTypography.w500,
     ),
     labelMedium: TextStyle(
       fontSize: AppTypography.fontSizeSm,
       height: AppTypography.heightSm,
       fontWeight: AppTypography.w600,
     ),
+    labelLarge: TextStyle(
+      fontSize: AppTypography.fontSizeMd,
+      height: AppTypography.heightMd,
+      fontWeight: AppTypography.w600,
+    ),
   );
 
-  /// Light theme colors.
-  static final TextTheme lightTextTheme = _baseTextTheme.apply(
-    bodyColor: AppColors.grey[900]!,
-    displayColor: AppColors.grey[900]!,
-  );
+  /// Light Theme
+  /// - Primary text: 0xFF1A1A1A
+  /// - Secondary text: 0xFF575757 (captions/lighter text)
+  static final TextTheme lightTextTheme = () {
+    final themed = _baseTextTheme.apply(
+      bodyColor: _primaryText,
+      displayColor: _primaryText,
+      decorationColor: _primaryText,
+    );
 
-  /// Dark theme placeholder
-  static TextTheme darkTextTheme = _baseTextTheme.apply(
+    return themed.copyWith(
+      // Secondary text styles
+      bodySmall: themed.bodySmall?.copyWith(color: _secondaryText),
+      labelSmall: themed.labelSmall?.copyWith(color: _secondaryText),
+    );
+  }();
+
+  /// Dark Theme (placeholder)
+  ///
+  /// Architecture supports dark mode; refine later.
+  static final TextTheme darkTextTheme = _baseTextTheme.apply(
     bodyColor: Colors.white,
     displayColor: Colors.white,
+    decorationColor: Colors.white,
   );
 }
