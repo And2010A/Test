@@ -31,6 +31,17 @@
 
   <title>workout_app</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Prevent the default browser textarea resize handle (bottom-right gripper) -->
+  <style>
+    textarea {
+      resize: none !important;
+    }
+
+    textarea::-webkit-resizer {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

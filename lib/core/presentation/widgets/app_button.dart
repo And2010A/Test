@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../constants/app_typography.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/custom_themes/elevated_button_theme.dart';
 
@@ -57,12 +58,17 @@ class AppButton extends StatelessWidget {
     return map[size]!;
   }
 
-  TextStyle _textStyle(Color color) {
-    return TextStyle(
+  TextStyle _textStyle(BuildContext context, Color color) {
+    final base = Theme.of(context).textTheme.labelLarge ??
+        const TextStyle(
+          fontSize: AppTypography.fontSizeMd,
+          height: AppTypography.heightMd,
+          fontWeight: AppTypography.semiBold,
+        );
+
+    return base.copyWith(
       color: color,
-      fontSize: 16,
-      fontWeight: FontWeight.w500,
-      height: 24 / 16,
+      fontWeight: AppTypography.medium,
     );
   }
 
@@ -101,11 +107,11 @@ class AppButton extends StatelessWidget {
       case ButtonVariant.primary:
         return AppColors.white;
       case ButtonVariant.secondary:
-        return Colors.black87;
+        return AppColors.grey.shade900;
       case ButtonVariant.ghost:
         return _ghostColor;
       case ButtonVariant.google:
-        return Colors.black87;
+        return AppColors.grey.shade900;
     }
   }
 
@@ -117,7 +123,7 @@ class AppButton extends StatelessWidget {
       case ButtonVariant.primary:
         return const BorderSide(color: Colors.transparent, width: 0);
       case ButtonVariant.secondary:
-        return BorderSide(color: AppColors.grey.shade500, width: 1);
+        return BorderSide(color: AppColors.grey.shade600, width: 1);
       case ButtonVariant.ghost:
         return const BorderSide(color: Colors.transparent, width: 0);
       case ButtonVariant.google:
@@ -154,9 +160,9 @@ class AppButton extends StatelessWidget {
         if (iconPosition == IconPosition.left) ...[
           sizedIcon,
           const SizedBox(width: 4),
-          Text(text!, style: _textStyle(fgColor)),
+          Text(text!, style: _textStyle(context, fgColor)),
         ] else ...[
-          Text(text!, style: _textStyle(fgColor)),
+          Text(text!, style: _textStyle(context, fgColor)),
           const SizedBox(width: 4),
           sizedIcon,
         ],
@@ -172,7 +178,7 @@ class AppButton extends StatelessWidget {
       child = Center(
         child: Text(
           text!,
-          style: _textStyle(fgColor),
+          style: _textStyle(context, fgColor),
         ),
       );
     } else {
@@ -186,7 +192,11 @@ class AppButton extends StatelessWidget {
           ),
         ),
       );
-      child = Center(child: sizedIcon);
+      child = Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [sizedIcon],
+      );
     }
 
     final paddedContent = ConstrainedBox(

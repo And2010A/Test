@@ -1,99 +1,93 @@
 import 'package:flutter/material.dart';
 
 import '../../constants/app_typography.dart';
+import '../app_colors.dart';
+
 class TTextTheme {
   TTextTheme._();
 
-  // Colors (from Figma)
-  static const Color _primaryText = Color(0xFF1A1A1A);
-  static const Color _secondaryText = Color(0xFF575757);
-  static const Color _brandColor = Color(0xFFF84416);
+  /// Brand color (Figma): #F84416.
+  static Color get brandColor => AppColors.primary.shade500;
 
-  /// Expose the brand color for any custom text use-cases (links, highlights, etc.).
-  static Color get brandColor => _brandColor;
-  static final TextTheme _baseTextTheme = const TextTheme(
+  /// Base structure (DRY): typography only.
+  /// Important: do NOT set colors here.
+  static const TextTheme _baseTextTheme = TextTheme(
     // Body
     bodySmall: TextStyle(
       fontSize: AppTypography.fontSizeSm,
       height: AppTypography.heightSm,
-      fontWeight: AppTypography.w400,
+      fontWeight: AppTypography.regular,
     ),
     bodyMedium: TextStyle(
-      fontSize: AppTypography.fontSizeSm,
-      height: AppTypography.heightSm,
-      fontWeight: AppTypography.w400,
-    ),
-    bodyLarge: TextStyle(
       fontSize: AppTypography.fontSizeMd,
       height: AppTypography.heightMd,
-      fontWeight: AppTypography.w400,
+      fontWeight: AppTypography.regular,
+    ),
+    bodyLarge: TextStyle(
+      fontSize: AppTypography.fontSizeLg,
+      height: AppTypography.heightLg,
+      fontWeight: AppTypography.regular,
     ),
 
     // Titles
     titleSmall: TextStyle(
       fontSize: AppTypography.fontSizeLg,
       height: AppTypography.heightLg,
-      fontWeight: AppTypography.w600,
+      fontWeight: AppTypography.semiBold,
     ),
     titleMedium: TextStyle(
       fontSize: AppTypography.fontSizeMd,
       height: AppTypography.heightMd,
-      fontWeight: AppTypography.w600,
+      fontWeight: AppTypography.semiBold,
     ),
     titleLarge: TextStyle(
       fontSize: AppTypography.fontSizeXl,
       height: AppTypography.heightXl,
-      fontWeight: AppTypography.w600,
+      fontWeight: AppTypography.semiBold,
     ),
 
     // Headlines
     headlineSmall: TextStyle(
       fontSize: AppTypography.fontSize2xl,
       height: AppTypography.height2xl,
-      fontWeight: AppTypography.w700,
+      fontWeight: AppTypography.bold,
     ),
 
     // Labels (buttons, chips, etc.)
     labelSmall: TextStyle(
       fontSize: AppTypography.fontSizeSm,
       height: AppTypography.heightSm,
-      fontWeight: AppTypography.w500,
+      fontWeight: AppTypography.medium,
     ),
     labelMedium: TextStyle(
       fontSize: AppTypography.fontSizeSm,
       height: AppTypography.heightSm,
-      fontWeight: AppTypography.w600,
+      fontWeight: AppTypography.semiBold,
     ),
     labelLarge: TextStyle(
       fontSize: AppTypography.fontSizeMd,
       height: AppTypography.heightMd,
-      fontWeight: AppTypography.w600,
+      fontWeight: AppTypography.semiBold,
     ),
   );
 
   /// Light Theme
-  /// - Primary text: 0xFF1A1A1A
-  /// - Secondary text: 0xFF575757 (captions/lighter text)
   static final TextTheme lightTextTheme = () {
     final themed = _baseTextTheme.apply(
-      bodyColor: _primaryText,
-      displayColor: _primaryText,
-      decorationColor: _primaryText,
+      bodyColor: AppColors.grey.shade900,
+      displayColor: AppColors.grey.shade900,
     );
 
     return themed.copyWith(
       // Secondary text styles
-      bodySmall: themed.bodySmall?.copyWith(color: _secondaryText),
-      labelSmall: themed.labelSmall?.copyWith(color: _secondaryText),
+      bodySmall: themed.bodySmall?.copyWith(color: AppColors.grey.shade600),
+      labelSmall: themed.labelSmall?.copyWith(color: AppColors.grey.shade600),
     );
   }();
 
   /// Dark Theme (placeholder)
-  ///
-  /// Architecture supports dark mode; refine later.
   static final TextTheme darkTextTheme = _baseTextTheme.apply(
-    bodyColor: Colors.white,
-    displayColor: Colors.white,
-    decorationColor: Colors.white,
+    bodyColor: AppColors.white,
+    displayColor: AppColors.white,
   );
 }
