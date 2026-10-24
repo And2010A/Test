@@ -10,8 +10,9 @@ Writes:
     analysis.png    spectrogram + energy + vocal activity + beats + sections + lyric lines
     lyrics.srt      lyric lines with the estimated timings (open next to the song in a player to check)
 
-Lyric timings are estimated from the separated vocal track (no speech recognition), so they are
-approximate: they are snapped to where the voice starts after a pause and spread by syllable count.
+With --whisper MODEL_DIR (see tools/get_whisper_model.sh) the vocals are transcribed with word
+timestamps and the given lyrics are matched against them, so every line and word gets a real time.
+Without it, lyric timings are only estimated from the separated vocal track (rough).
 """
 import argparse
 import json
@@ -181,6 +182,77 @@ def align_lyrics(lines, vocal_db, active, vocal_onsets_t):
     return out, rate
 
 
+WORD_RE = re.compile(r"[\w-]+", re.U)
+
+
+def norm(w):
+    return w.lower().replace("ё", "е").strip("-")
+
+
+def transcribe(model_dir, y, lyrics_lines):
+    from faster_whisper import WhisperModel
+    audio16 = librosa.resample(y, orig_sr=SR, target_sr=16000)
+    model = WhisperModel(model_dir, device="cpu", compute_type="int8")
+    uniq = list(dict.fromkeys(lyrics_lines))
+    prompt = " ".join(uniq)[:400]
+    # Whisper tends to drop long stretches of a dense mix, so go through it in overlapping windows
+    # and keep each word from the window where it sits furthest from the edges.
+    win, hop, sr = 30.0, 20.0, 16000
+    words = []
+    t0 = 0.0
+    total = len(audio16) / sr
+    while t0 < total:
+        chunk = audio16[int(t0 * sr):int(min(total, t0 + win) * sr)]
+        keep_from = 0.0 if t0 == 0 else t0 + (win - hop) / 2
+        keep_to = total if t0 + win >= total else t0 + win - (win - hop) / 2
+        segs, _ = model.transcribe(chunk, language="ru", word_timestamps=True, initial_prompt=prompt,
+                                   condition_on_previous_text=False, beam_size=5)
+        for seg in segs:
+            for w in seg.words:
+                st = t0 + w.start
+                if keep_from <= st < keep_to:
+                    for tok in WORD_RE.findall(w.word):
+                        words.append({"w": tok, "start": round(st, 2), "end": round(t0 + w.end, 2), "p": round(w.probability, 2)})
+        print(f"  asr {t0:.0f}-{min(total, t0 + win):.0f}s: {len(words)} words", flush=True)
+        if t0 + win >= total:
+            break
+        t0 += hop
+    return words
+
+
+def align_to_asr(lines, asr):
+    """Match lyric words to recognised words in order; words without a match are interpolated."""
+    import difflib
+    lw = [(li, tok) for li, line in enumerate(lines) for tok in WORD_RE.findall(line)]
+    a = [norm(t) for _, t in lw]
+    b = [norm(w["w"]) for w in asr]
+    times = [None] * len(lw)
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
+        if tag == "equal" or (tag == "replace" and i2 - i1 == j2 - j1):
+            for k in range(i2 - i1):
+                times[i1 + k] = (asr[j1 + k]["start"], asr[j1 + k]["end"], tag == "equal")
+    known = [i for i, t in enumerate(times) if t]
+    for i in range(len(times)):
+        if times[i] is None:
+            prev = max([k for k in known if k < i], default=None)
+            nxt = min([k for k in known if k > i], default=None)
+            if prev is not None and nxt is not None:
+                t0, t1 = times[prev][1], times[nxt][0]
+                n = nxt - prev
+                st = t0 + (t1 - t0) * (i - prev - 1) / max(1, n - 1)
+                times[i] = (round(st, 2), round(st + max(0.15, (t1 - t0) / n), 2), False)
+    out = []
+    for li, line in enumerate(lines):
+        idx = [i for i, (l, _) in enumerate(lw) if l == li and times[i]]
+        if not idx:
+            out.append({"text": line, "start": None, "end": None, "words": [], "heard": 0.0})
+            continue
+        words = [{"w": lw[i][1], "start": times[i][0], "end": times[i][1]} for i in idx]
+        heard = sum(1 for i in idx if times[i][2]) / len([1 for l, _ in lw if l == li])
+        out.append({"text": line, "start": words[0]["start"], "end": words[-1]["end"], "words": words, "heard": round(heard, 2)})
+    return out
+
+
 def srt_time(s):
     h, rem = divmod(s, 3600)
     m, sec = divmod(rem, 60)
@@ -192,6 +264,7 @@ def main():
     ap.add_argument("audio")
     ap.add_argument("--lyrics")
     ap.add_argument("--out", default="out/audio")
+    ap.add_argument("--whisper", metavar="MODEL_DIR", help="faster-whisper model for word-level lyric timing")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
@@ -226,11 +299,23 @@ def main():
     if args.lyrics:
         raw = [l.strip() for l in open(args.lyrics, encoding="utf-8")]
         lines = [l for l in raw if l and not l.lower().startswith(("моя голова винтом — ", "@"))]
-        lyric_lines, rate = align_lyrics(lines, vocal_db, active, v_onsets_t)
-        print(f"aligned {len(lyric_lines)} lyric lines ({rate:.2f}s of voice per syllable)")
+        if args.whisper:
+            asr = transcribe(args.whisper, y, lines)
+            with open(os.path.join(args.out, "asr_words.json"), "w", encoding="utf-8") as f:
+                json.dump(asr, f, ensure_ascii=False, indent=0)
+            lyric_lines = align_to_asr(lines, asr)
+            print(f"transcribed {len(asr)} words; lines heard: "
+                  f"{sum(1 for l in lyric_lines if l['heard'] >= 0.5)}/{len(lyric_lines)}")
+        else:
+            lyric_lines, rate = align_lyrics(lines, vocal_db, active, v_onsets_t)
+            print(f"aligned {len(lyric_lines)} lyric lines ({rate:.2f}s of voice per syllable, rough)")
         with open(os.path.join(args.out, "lyrics.srt"), "w", encoding="utf-8") as f:
-            for i, l in enumerate(lyric_lines, 1):
-                f.write(f"{i}\n{srt_time(l['start'])} --> {srt_time(l['end'])}\n{l['text']}\n\n")
+            n = 0
+            for l in lyric_lines:
+                if l["start"] is None:
+                    continue
+                n += 1
+                f.write(f"{n}\n{srt_time(l['start'])} --> {srt_time(l['end'])}\n{l['text']}\n\n")
 
     step = int(round(0.1 * SR / HOP))
     timeline = {
@@ -264,7 +349,7 @@ def main():
                 ax.axvline(s["start"], color="cyan", lw=2)
                 ax.text(max(s["start"], a0) + 0.1, 88, s["label"], color="cyan", fontsize=14, weight="bold")
         for i, l in enumerate(lyric_lines):
-            if l["end"] > a0 and l["start"] < a1:
+            if l["start"] is not None and l["end"] > a0 and l["start"] < a1:
                 ax.axvspan(l["start"], l["end"], ymin=0.02, ymax=0.12, color=colors[i % 10], alpha=0.8)
                 ax.text(max(l["start"], a0), 13 + (i % 3) * 9, l["text"][:38], color="white", fontsize=8,
                         bbox=dict(facecolor="black", alpha=0.5, pad=1, lw=0))

@@ -19,7 +19,7 @@ node render/render.mjs shots/preview_turntable.mjs out/frames --mp4 out/preview_
 node render/render.mjs shots/model_sheet.mjs out/sheet
 ```
 
-Шот (`shots/*.mjs`) описує камеру й пози кісток для кожного кадру; `render/scene.js` — світло й стилі (`dark`, `studio`).
+Шот (`shots/*.mjs`) описує камеру й пози кісток для кожного кадру; `render/scene.js` — світло й стилі (`dark`, `studio`, `white`); `render/facerig.js` — риг обличчя (очі, брови, рум'янець, рот), вирази в `render/face_presets.js`, ключові кадри в `render/anim.js`.
 
 ## Монтаж
 
@@ -39,5 +39,5 @@ python3 audio/analyze.py audio/song.m4a --lyrics audio/lyrics.txt --out out/audi
 ```
 
 Дає `timeline.json` (темп, удари, сильні долі, гучність, частини пісні, що повторюються), `analysis.png` і `lyrics.srt`.
-Таймінги рядків у `lyrics.srt` — лише чернетка: вони оцінені по вокалу без розпізнавання мови.
+Точні таймінги слів: `tools/get_whisper_model.sh` (Whisper small з npm), потім `--whisper models/whisper-small`. Без нього таймінги рядків — лише груба оцінка.
 Аудіо в репозиторій не комітиться (`.gitignore`).

@@ -43,11 +43,27 @@ def band_background(band, size):
     return Image.merge("RGB", (r, g, b)).crop((2 * split, 0, 2 * split + W, H))
 
 
-def typed(text, start, typed_by, t):
-    if t < start:
-        return ""
-    k = min(1.0, (t - start) / max(0.01, typed_by - start))
-    return text[: max(1, round(len(text) * k))]
+LEAD = 0.06  # show each word a hair before it is sung, never after
+
+
+def typed(line, t):
+    """The line as typed so far: every word appears letter by letter while it is being sung."""
+    text, pos = line["text"], 0
+    shown = 0
+    for wd in line["words"]:
+        at = text.find(wd["w"], pos)
+        if at < 0:
+            continue
+        pos = at + len(wd["w"])
+        st = wd["start"] - LEAD
+        if t < st:
+            break
+        k = min(1.0, (t - st) / max(0.05, min(0.3, wd["end"] - wd["start"])))
+        shown = at + max(1, round(len(wd["w"]) * k))
+        if k >= 1:  # include trailing punctuation once the word is complete
+            while shown < len(text) and not text[shown].isspace() and not text[shown].isalnum():
+                shown += 1
+    return text[:shown]
 
 
 def draw_subtitle(frame, text, center_x, baseline_y, font):
@@ -96,10 +112,12 @@ def main():
         frame = band_background(band, (W, H)).convert("RGBA")
         frame.paste(band, (0, band_y))
 
-        for line in edit["lines"]:
-            if line["start"] <= T < line["end"]:
-                draw_subtitle(frame, typed(line["text"], line["start"], line["typed_by"], T),
-                              W // 2, band_y + bh - 92, font)
+        lines = edit["lines"]
+        for k, line in enumerate(lines):
+            shown_from = line["words"][0]["start"] - LEAD
+            shown_to = lines[k + 1]["words"][0]["start"] - LEAD if k + 1 < len(lines) else end
+            if shown_from <= T < shown_to:
+                draw_subtitle(frame, typed(line, T), W // 2, band_y + bh - 92, font)
 
         flash = 0.0
         for ft in edit.get("flashes", []):

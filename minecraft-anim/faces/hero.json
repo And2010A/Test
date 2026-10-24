@@ -1,0 +1,12 @@
+{
+  "comment": "Face rig for skins/hero.png. Pixel coordinates are inside the 8x8 head front (x right, y down).",
+  "skin": "#dabfa7",
+  "erase": [[1, 5], [6, 5], [3, 6], [4, 6]],
+  "eyes": [[1, 5], [6, 5]],
+  "mouth": [4, 6.5],
+  "eyeColor": "#0b0b0e",
+  "browColor": "#3b3634",
+  "blushColor": "#f2899a",
+  "mouthColor": "#1a1012",
+  "tongueColor": "#d9727e"
+}

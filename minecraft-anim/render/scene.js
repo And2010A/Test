@@ -5,6 +5,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { loadBBModel } from './bbmodel.js';
+import { buildFaceRig } from './facerig.js';
 
 const STYLES = {
   // Dark room with violet light, like the reference video.
@@ -86,9 +87,10 @@ window.setupScene = async ({ width, height, style = 'dark', models: list }) => {
   if (s.bloom[0] > 0) composer.addPass(new UnrealBloomPass(new THREE.Vector2(width, height), ...s.bloom));
   composer.addPass(new OutputPass());
 
-  for (const { id, url, position = [0, 0, 0], rotationY = 0 } of list) {
+  for (const { id, url, face, position = [0, 0, 0], rotationY = 0 } of list) {
     const json = await (await fetch(url)).json();
     const m = await loadBBModel(json);
+    if (face) m.rig = buildFaceRig(m.bones.head, m.pivots.head, m.material, await (await fetch(face)).json());
     m.root.position.set(...position);
     m.root.rotation.y = THREE.MathUtils.degToRad(rotationY);
     scene.add(m.root);
@@ -97,16 +99,18 @@ window.setupScene = async ({ width, height, style = 'dark', models: list }) => {
   return true;
 };
 
-// frame = { camera: {pos:[x,y,z], target:[x,y,z], fov}, models: { id: { rootRotY, rootPos, bones: { name: [rx,ry,rz] (deg) } } } }
+// frame = { camera: {pos:[x,y,z], target:[x,y,z], fov, roll}, models: { id: { rootRotY, rootPos, bones: { name: [rx,ry,rz] (deg) }, face: {...} } } }
 window.renderFrame = (frame) => {
   const c = frame.camera;
   camera.position.set(...c.pos);
   if (c.fov) { camera.fov = c.fov; camera.updateProjectionMatrix(); }
   camera.lookAt(new THREE.Vector3(...c.target));
+  if (c.roll) camera.rotateZ(THREE.MathUtils.degToRad(c.roll));
   for (const [id, st] of Object.entries(frame.models || {})) {
     const m = models[id];
     if (st.rootRotY !== undefined) m.root.rotation.y = THREE.MathUtils.degToRad(st.rootRotY);
     if (st.rootPos) m.root.position.set(...st.rootPos);
+    if (m.rig) m.rig.update(st.face || {});
     for (const [name, b] of Object.entries(m.bones)) {
       const r = b.userData.rest.rotation;
       const d = (st.bones && st.bones[name]) || [0, 0, 0];

@@ -3,3 +3,4 @@ out/
 audio/*.m4a
 audio/*.mp3
 audio/*.wav
+models/whisper-small/

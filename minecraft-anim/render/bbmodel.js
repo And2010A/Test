@@ -51,6 +51,15 @@ function cubeGeometry(el, resW, resH) {
   return g;
 }
 
+function collectPivots(nodes, out = []) {
+  for (const n of nodes) {
+    if (typeof n === 'string') continue;
+    out.push([n.name, n.origin]);
+    collectPivots(n.children, out);
+  }
+  return out;
+}
+
 export async function loadBBModel(json, { materialFactory } = {}) {
   const tex = await new THREE.TextureLoader().loadAsync(json.textures[0].source);
   tex.magFilter = THREE.NearestFilter;
@@ -85,5 +94,5 @@ export async function loadBBModel(json, { materialFactory } = {}) {
 
   const root = new THREE.Group();
   for (const node of json.outliner) root.add(build(node, [0, 0, 0]));
-  return { root, bones, texture: tex };
+  return { root, bones, texture: tex, material: mat, pivots: Object.fromEntries(json.outliner ? collectPivots(json.outliner) : []) };
 }
