@@ -29,7 +29,32 @@ const STYLES = {
     bloom: [0.0, 0.0, 1.0],
     exposure: 1.0,
   },
+  // Soft white backdrop like the "Best Duo" reference: bright, low-contrast, slightly dreamy.
+  white: {
+    background: ['#ededf1', '#ffffff', '#f4f4f7'], // top, middle, bottom of a vertical gradient
+    ambient: [0xffffff, 1.15],
+    hemi: [0xffffff, 0xd8d4e4, 0.9],
+    key: [0xfff4ec, 1.5, [-24, 34, -30]],
+    rim: [0xe6dcff, 1.6, [20, 30, 24]],
+    fill: [0xeef2ff, 0.45, [22, 14, -26]],
+    bloom: [0.22, 0.6, 0.86],
+    exposure: 1.0,
+    toneMapping: 'none', // keep the backdrop pure white
+  },
 };
+
+function gradientTexture(stops) {
+  const c = document.createElement('canvas');
+  c.width = 2; c.height = 256;
+  const g = c.getContext('2d');
+  const grad = g.createLinearGradient(0, 0, 0, 256);
+  stops.forEach((col, i) => grad.addColorStop(i / (stops.length - 1), col));
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 2, 256);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
 
 let renderer, scene, camera, composer, models = {};
 
@@ -38,12 +63,12 @@ window.setupScene = async ({ width, height, style = 'dark', models: list }) => {
   renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: false });
   renderer.setSize(width, height);
   renderer.setPixelRatio(1);
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMapping = s.toneMapping === 'none' ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = s.exposure;
   document.body.appendChild(renderer.domElement);
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(s.background);
+  scene.background = Array.isArray(s.background) ? gradientTexture(s.background) : new THREE.Color(s.background);
   scene.add(new THREE.AmbientLight(...s.ambient));
   scene.add(new THREE.HemisphereLight(...s.hemi));
   for (const k of ['key', 'rim', 'fill']) {

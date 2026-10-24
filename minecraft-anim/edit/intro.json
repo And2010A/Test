@@ -1,0 +1,15 @@
+{
+  "comment": "Opening of the edit: hero alone, first two chorus lines. Times are song seconds (audio/song.m4a).",
+  "audio": "audio/song.m4a",
+  "start": 62.95,
+  "end": 71.08,
+  "fps": 30,
+  "size": [1080, 1920],
+  "band": [1080, 806],
+  "lines": [
+    { "text": "Моя голова винтом", "start": 63.07, "typed_by": 65.4, "end": 67.0 },
+    { "text": "Когда я перед собой вижу тебя наяву", "start": 67.1, "typed_by": 70.1, "end": 71.08 }
+  ],
+  "cuts": [67.06],
+  "flashes": [67.06, 70.85]
+}

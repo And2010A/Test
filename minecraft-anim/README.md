@@ -21,6 +21,16 @@ node render/render.mjs shots/model_sheet.mjs out/sheet
 
 Шот (`shots/*.mjs`) описує камеру й пози кісток для кожного кадру; `render/scene.js` — світло й стилі (`dark`, `studio`).
 
+## Монтаж
+
+```bash
+node render/render.mjs shots/intro_solo.mjs out/intro_frames
+python3 tools/compose.py edit/intro.json out/intro_frames out/intro_solo.mp4
+```
+
+`edit/intro.json` — фрагмент пісні, рядки субтитрів (час появи й до коли друкуються), склейки та спалахи.
+Компоновка: кадр посередині, розмиті копії зверху/знизу, піксельні субтитри (шрифт Tiny5, OFL).
+
 ## Аналіз пісні
 
 ```bash
