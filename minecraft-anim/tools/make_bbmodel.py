@@ -9,6 +9,8 @@ Coordinates follow Blockbench: the character faces north (-Z), its right side is
 
 --layers flat  outer skin layer as slightly inflated boxes (like vanilla Minecraft)
 --layers 3d    outer skin layer as one small voxel per pixel (like the "3D Skin Layers" mod)
+--clear X,Y,W,H  make a rectangle of the skin transparent first (repeatable), e.g. a stray
+               outer-layer detail that sticks out of the face
 """
 import argparse
 import base64
@@ -93,25 +95,48 @@ FACE_AXES = {
 }
 
 
-def voxel_layer(img, name, frm, to, origin, u, v, w, h, d, thickness):
+# Which in-plane directions a face's voxel grid extends past the box edge, so that every edge and
+# corner of the shell is owned by exactly one face (no overlapping voxels):
+# north/south own the vertical and horizontal edges, east/west only the top/bottom ones.
+GROW = {"north": (1, 1), "south": (1, 1), "east": (0, 1), "west": (0, 1), "up": (0, 0), "down": (0, 0)}
+
+# Faces of the outer layer that are pressed against another body part and never seen.
+HIDDEN = {
+    "head": {"down"},
+    "body": {"up", "down", "east", "west"},
+    "right_arm": {"west"},
+    "left_arm": {"east"},
+    "right_leg": {"up", "west"},
+    "left_leg": {"up", "east"},
+}
+
+
+# Sides (axis, +1/-1) where a part touches its neighbour, so its voxels must not grow past them.
+INNER = {"right_leg": [(0, -1)], "left_leg": [(0, +1)]}
+
+
+def voxel_layer(img, name, frm, to, origin, u, v, w, h, d, thickness, skip=(), inner=()):
     """One small cube per opaque pixel of the outer layer, sitting just outside the base box."""
     cubes = []
     lo, hi = list(frm), list(to)
     gap = 0.02
     for face, rect in box_faces(u, v, w, h, d).items():
+        if face in skip:
+            continue
         n_ax, n_sign, x_ax, x_sign, y_ax, y_sign = FACE_AXES[face]
         x1, y1, x2, y2 = rect
         tw, th = abs(x2 - x1), abs(y2 - y1)
         step_tx = 1 if x2 > x1 else -1
         step_ty = 1 if y2 > y1 else -1
-        # Expand the shell so neighbouring faces meet at the edges.
-        grow = gap + thickness
-        x_len = hi[x_ax] - lo[x_ax]
-        y_len = hi[y_ax] - lo[y_ax]
-        px = (x_len + 2 * grow) / tw
-        py = (y_len + 2 * grow) / th
-        x_start = (lo[x_ax] - grow) if x_sign > 0 else (hi[x_ax] + grow)
-        y_start = (lo[y_ax] - grow) if y_sign > 0 else (hi[y_ax] + grow)
+        # Shell bounds along the two in-plane axes, extended where this face owns the edge.
+        ext = {}
+        for ax, g in ((x_ax, GROW[face][0]), (y_ax, GROW[face][1])):
+            e = g * (gap + thickness)
+            ext[ax] = (lo[ax] - (0 if (ax, -1) in inner else e), hi[ax] + (0 if (ax, +1) in inner else e))
+        px = (ext[x_ax][1] - ext[x_ax][0]) / tw
+        py = (ext[y_ax][1] - ext[y_ax][0]) / th
+        x_start = ext[x_ax][0] if x_sign > 0 else ext[x_ax][1]
+        y_start = ext[y_ax][0] if y_sign > 0 else ext[y_ax][1]
         for j in range(th):
             for i in range(tw):
                 tx = x1 + i * step_tx + (0 if step_tx > 0 else -1)
@@ -144,8 +169,9 @@ def build(img, slim, layers):
         "body": ([-4, 12, -2], [4, 24, 2], [0, 12, 0], (16, 16), (16, 32), 0.25, 0.5),
         "right_arm": ([4, 12, -2], [4 + aw, 24, 2], [5, 22, 0], (40, 16), (40, 32), 0.25, 0.5),
         "left_arm": ([-4 - aw, 12, -2], [-4, 24, 2], [-5, 22, 0], (32, 48), (48, 48), 0.25, 0.5),
-        "right_leg": ([-0.1, 0, -2], [3.9, 12, 2], [1.9, 12, 0], (0, 16), (0, 32), 0.25, 0.5),
-        "left_leg": ([-3.9, 0, -2], [0.1, 12, 2], [-1.9, 12, 0], (16, 48), (0, 48), 0.25, 0.5),
+        # Legs sit side by side without vanilla's 0.2 px overlap, which flickers between them.
+        "right_leg": ([0, 0, -2], [4, 12, 2], [2, 12, 0], (0, 16), (0, 32), 0.25, 0.5),
+        "left_leg": ([-4, 0, -2], [0, 12, 2], [-2, 12, 0], (16, 48), (0, 48), 0.25, 0.5),
     }
     elements = []
     groups = {}
@@ -161,7 +187,8 @@ def build(img, slim, layers):
             elements.append(over)
             kids.append(over["uuid"])
         else:
-            vox = voxel_layer(img, name + "_layer", frm, to, pivot, *over_uv, w, h, d, thick)
+            vox = voxel_layer(img, name + "_layer", frm, to, pivot, *over_uv, w, h, d, thick,
+                              HIDDEN[name], INNER.get(name, ()))
             elements.extend(vox)
             if vox:
                 kids.append(group(name + "_layer", pivot, [c["uuid"] for c in vox]))
@@ -179,11 +206,17 @@ def main():
     ap.add_argument("out")
     ap.add_argument("--layers", choices=["flat", "3d"], default="flat")
     ap.add_argument("--arms", choices=["auto", "classic", "slim"], default="auto")
+    ap.add_argument("--clear", action="append", default=[], metavar="X,Y,W,H")
     args = ap.parse_args()
 
     img = Image.open(args.skin).convert("RGBA")
     if img.size != (64, 64):
         raise SystemExit(f"expected a 64x64 skin, got {img.size}")
+    for r in args.clear:
+        x, y, w, h = map(int, r.split(","))
+        for yy in range(y, y + h):
+            for xx in range(x, x + w):
+                img.putpixel((xx, yy), (0, 0, 0, 0))
     slim = detect_slim(img) if args.arms == "auto" else args.arms == "slim"
 
     elements, outliner = build(img, slim, args.layers)
