@@ -66,6 +66,22 @@ def typed(line, t):
     return text[:shown]
 
 
+def typed_translation(line, t):
+    """Translated line: each chunk is typed while the sung words it stands for are being sung.
+    line["en"] = [[chunk, index of the sung word it starts on], ...]"""
+    chunks, words = line["en"], line["words"]
+    out = []
+    for i, (chunk, wi) in enumerate(chunks):
+        st = words[wi]["start"] - LEAD
+        if t < st:
+            break
+        nxt = words[chunks[i + 1][1]]["start"] - LEAD if i + 1 < len(chunks) else words[-1]["end"]
+        dur = max(0.05, min(nxt - st, 0.12 + 0.045 * len(chunk)))  # never slower than ~22 letters/s
+        k = min(1.0, (t - st) / dur)
+        out.append(chunk[: max(1, round(len(chunk) * k))])
+    return " ".join(out)
+
+
 def draw_subtitle(frame, text, center_x, baseline_y, font):
     if not text:
         return
@@ -117,7 +133,8 @@ def main():
             shown_from = line["words"][0]["start"] - LEAD
             shown_to = lines[k + 1]["words"][0]["start"] - LEAD if k + 1 < len(lines) else end
             if shown_from <= T < shown_to:
-                draw_subtitle(frame, typed(line, T), W // 2, band_y + bh - 92, font)
+                text = typed_translation(line, T) if edit.get("subtitles") == "en" else typed(line, T)
+                draw_subtitle(frame, text, W // 2, band_y + bh - 92, font)
 
         flash = 0.0
         for ft in edit.get("flashes", []):
