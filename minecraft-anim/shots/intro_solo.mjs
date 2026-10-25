@@ -69,7 +69,7 @@ const s4 = {
   cam: track([[C3, [-2, 30, 26, 26.2]], [LOVE - 0.05, [-4, 28, 26, 26.4]], [LOVE + 0.25, [-5, 26, 26.6, 27.4], 'back'], [72.0, [-6, 25, 26.6, 27.4]]]),
 };
 
-function frameAt(T) {
+export function frameAt(T) {
   const pulse = beatPulse(T, BEATS);
   const br = Math.sin(T * Math.PI * 2 / 3.2);
   const bones = {

@@ -6,6 +6,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { loadBBModel } from './bbmodel.js';
 import { buildFaceRig } from './facerig.js';
+import { buildProps, updateProps } from './props.js';
 
 const STYLES = {
   // Dark room with violet light, like the reference video.
@@ -41,6 +42,18 @@ const STYLES = {
     bloom: [0.22, 0.6, 0.86],
     exposure: 1.0,
     toneMapping: 'none', // keep the backdrop pure white
+  },
+  // The "Best Duo" card: white with a pale sky-blue haze toward the bottom.
+  card: {
+    background: ['#fdfdfe', '#f7f9fb', '#e4f4f9', '#cdeef7'],
+    ambient: [0xffffff, 1.15],
+    hemi: [0xffffff, 0xcfe6f0, 0.9],
+    key: [0xfff6f0, 1.45, [-24, 34, -30]],
+    rim: [0xd8f0ff, 1.7, [20, 30, 24]],
+    fill: [0xeef6ff, 0.45, [22, 14, -26]],
+    bloom: [0.2, 0.6, 0.88],
+    exposure: 1.0,
+    toneMapping: 'none',
   },
 };
 
@@ -87,10 +100,11 @@ window.setupScene = async ({ width, height, style = 'dark', models: list }) => {
   if (s.bloom[0] > 0) composer.addPass(new UnrealBloomPass(new THREE.Vector2(width, height), ...s.bloom));
   composer.addPass(new OutputPass());
 
-  for (const { id, url, face, position = [0, 0, 0], rotationY = 0 } of list) {
+  for (const { id, url, face, props = [], position = [0, 0, 0], rotationY = 0 } of list) {
     const json = await (await fetch(url)).json();
     const m = await loadBBModel(json);
     if (face) m.rig = buildFaceRig(m.bones.head, m.pivots.head, m.material, await (await fetch(face)).json());
+    m.props = buildProps(m, props);
     m.root.position.set(...position);
     m.root.rotation.y = THREE.MathUtils.degToRad(rotationY);
     scene.add(m.root);
@@ -111,6 +125,7 @@ window.renderFrame = (frame) => {
     if (st.rootRotY !== undefined) m.root.rotation.y = THREE.MathUtils.degToRad(st.rootRotY);
     if (st.rootPos) m.root.position.set(...st.rootPos);
     if (m.rig) m.rig.update(st.face || {});
+    updateProps(m.props, st.props);
     for (const [name, b] of Object.entries(m.bones)) {
       const r = b.userData.rest.rotation;
       const d = (st.bones && st.bones[name]) || [0, 0, 0];

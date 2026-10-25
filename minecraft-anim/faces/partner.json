@@ -1,0 +1,135 @@
+{
+  "comment": "Face rig for skins/partner.png (2 px eyes: white + pupil, no painted mouth). The cheeks are flattened to one skin tone: the JPEG source left a noisy checker there.",
+  "skin": "#eeab64",
+  "erase": [
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      4
+    ],
+    [
+      5,
+      4
+    ],
+    [
+      6,
+      4
+    ],
+    [
+      1,
+      5
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      5,
+      5
+    ],
+    [
+      6,
+      5
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      6,
+      6
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      6,
+      7
+    ]
+  ],
+  "eyes": [
+    {
+      "pupil": [
+        2,
+        4
+      ],
+      "white": [
+        1,
+        4
+      ]
+    },
+    {
+      "pupil": [
+        5,
+        4
+      ],
+      "white": [
+        6,
+        4
+      ]
+    }
+  ],
+  "mouth": [
+    4,
+    6.6
+  ],
+  "mouthScale": 0.7,
+  "eyeColor": "#2a1c12",
+  "eyeWhite": "#f3ecdc",
+  "browColor": "#3a2a1c",
+  "blushColor": "#ef7f86",
+  "mouthColor": "#3a1a14",
+  "tongueColor": "#d9727e"
+}

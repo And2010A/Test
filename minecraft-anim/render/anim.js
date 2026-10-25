@@ -11,7 +11,7 @@ export const EASE = {
   hold: (x) => (x < 1 ? 0 : 1),
 };
 
-const mix = (a, b, k) => (Array.isArray(a) ? a.map((v, i) => v + (b[i] - v) * k) : a + (b - a) * k);
+const mix = (a, b, k) => (Array.isArray(a) ? a.map((v, i) => mix(v, b[i], k)) : a + (b - a) * k);
 
 // keys: [[time, value, ease?], ...] sorted by time. The ease belongs to the segment arriving at that key.
 export function track(keys) {

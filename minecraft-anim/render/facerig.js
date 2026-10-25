@@ -37,11 +37,17 @@ export function buildFaceRig(headBone, pivot, material, cfg) {
     return { holder, mesh: m };
   };
 
-  const eyes = cfg.eyes.map(([i, j]) => {
-    const [cx, cy] = px(i + 0.5, j + 0.5);
+  // An eye is either [i, j] (a 1 px pupil) or { pupil: [i, j], white: [i, j] } (2 px eye with a white).
+  const eyes = cfg.eyes.map((spec) => {
+    const pupil = Array.isArray(spec) ? spec : spec.pupil;
+    const white = Array.isArray(spec) ? null : spec.white;
+    const [pxX, pxY] = px(pupil[0] + 0.5, pupil[1] + 0.5);
+    const [wx] = white ? px(white[0] + 0.5, white[1] + 0.5) : [pxX];
+    const cx = (pxX + wx) / 2;
     return {
-      cx, cy, side: Math.sign(cx),
+      cx, cy: pxY, px: pxX, wx, size: white ? 2 : 1, side: Math.sign(cx),
       ball: quad(cfg.eyeColor),
+      sclera: white ? quad(cfg.eyeWhite || '#f4efe6') : null,
       shine: quad('#ffffff'),
       caretL: quad(cfg.eyeColor),
       caretR: quad(cfg.eyeColor),
@@ -62,20 +68,27 @@ export function buildFaceRig(headBone, pivot, material, cfg) {
 
   function update(face) {
     const f = { ...NEUTRAL, ...face };
+    const ms = cfg.mouthScale || 1;
+    f.mouthW *= ms;
+    f.mouthH *= ms;
     for (const e of eyes) {
       const lx = -f.look[0] * 0.35, ly = f.look[1] * 0.3;
       const happy = f.happy > 0.5;
       const h = Math.max(0.12, f.eyeOpen) * (1 + 0.45 * f.wide);
       const w = 1 + 0.25 * (1 - f.eyeOpen);
       const bottom = e.cy - 0.5;
-      place(e.ball, e.cx + lx, bottom + h / 2 + ly, Z.base, w, h, 0, !happy);
+      // With a white, the pupil moves inside the eye instead of the whole eye moving.
+      const pupilX = e.sclera ? e.px + Math.max(-0.5, Math.min(0.5, lx)) : e.px + lx;
+      place(e.ball, pupilX, bottom + h / 2 + ly * (e.sclera ? 0 : 1), Z.base + (e.sclera ? -0.002 : 0), w, h, 0, !happy);
+      if (e.sclera) place(e.sclera, e.cx, bottom + h / 2, Z.base, 2 * w, h, 0, !happy);
       const shine = f.sparkle * (f.eyeOpen > 0.6 ? 1 : 0);
-      place(e.shine, e.cx + lx + 0.22 * e.side, bottom + h - 0.24 + ly, Z.top, 0.34 * shine, 0.34 * shine, 0, !happy);
+      place(e.shine, pupilX + 0.22 * e.side, bottom + h - 0.24, Z.top, 0.34 * shine, 0.34 * shine, 0, !happy);
       // "^": two short bars leaning together.
-      place(e.caretL, e.cx + 0.27, e.cy - 0.05, Z.base, 0.72, 0.24, -0.75, happy);
-      place(e.caretR, e.cx - 0.27, e.cy - 0.05, Z.base, 0.72, 0.24, 0.75, happy);
+      const cs = e.size === 2 ? 1.5 : 1;
+      place(e.caretL, e.cx + 0.27 * cs, e.cy - 0.05, Z.base, 0.72 * cs, 0.24, -0.75, happy);
+      place(e.caretR, e.cx - 0.27 * cs, e.cy - 0.05, Z.base, 0.72 * cs, 0.24, 0.75, happy);
       const browY = e.cy + 0.5 + 0.38 + f.browRaise + (f.wide * 0.18);
-      place(e.brow, e.cx - 0.05 * e.side, browY, Z.base, 1.25, 0.22, -THREE.MathUtils.degToRad(f.browTilt) * e.side);
+      place(e.brow, e.cx - 0.05 * e.side, browY, Z.base, 1.25 * (e.size === 2 ? 1.5 : 1), 0.22, -THREE.MathUtils.degToRad(f.browTilt) * e.side);
       // Cheeks: soft patch plus "///" when flustered.
       e.blush.mesh.material.opacity = 0.65 * f.blush;
       place(e.blush, e.cx + 0.2 * e.side, e.cy - 1.05, Z.patch, 1.55, 0.6, 0, f.blush > 0.02);
